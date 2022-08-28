@@ -12,12 +12,16 @@ hand-written digits, from 0-9.
 # License: BSD 3 clause
 
 # Standard scientific Python imports
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+import seaborn as sebrn
 # Import datasets, classifiers and performance metrics
 from sklearn import datasets, svm, metrics
 from sklearn.model_selection import train_test_split
-
+import matplotlib.pyplot
+import numpy as np
+#%matplotlib inline
 ###############################################################################
 # Digits dataset
 # --------------
@@ -96,6 +100,9 @@ print(
 ###############################################################################
 # We can also plot a :ref:`confusion matrix <confusion_matrix>` of the
 # true digit values and the predicted digit values.
+from sklearn.metrics import plot_confusion_matrix
+from matplotlib.colors import Normalize
+from sklearn.metrics import ConfusionMatrixDisplay
 
 disp = metrics.ConfusionMatrixDisplay.from_predictions(y_test, predicted)
 disp.figure_.suptitle("Confusion Matrix")
