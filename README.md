@@ -1,1 +1,2 @@
-# mlops-22- Repos commited by Rajesh Kumar & Roll Number : M21AIE245
+# mlops-22
+This repo can be used for plotting digits classification

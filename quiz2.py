@@ -14,7 +14,7 @@ from sklearn import datasets, svm, metrics
 from sklearn.model_selection import train_test_split
 
 # 1. set the ranges of hyper parameters 
-gamma_list = [0.1, 0.01, 0.02, 0.005, 0.001, 0.0001]
+gamma_list = [0.1, 0.01, 0.02, 0.005]
 c_list = [0.1, 0.2, 0.5, 1,10, 100] 
 
 h_param_comb = [{'gamma':g, 'C':c} for g in gamma_list for c in c_list]
@@ -154,7 +154,49 @@ for data in data_list:
        # print(f"{cur_h_params}\t\t:{train_accuracy}\t:{cur_acc}\t:{test_accuracy}")
         df.loc[len(df.index)] = df_row_list
     df = df.set_index('hyperparameter')
+
+   
+
     print(df)
+
+    #Calculating min  accuracies across hyperparameters
+    min_train_acc=min(df['train_acc'].tolist())
+    min_dev_acc=min(df['dev_acc'].tolist())
+    min_test_acc=min(df['test_acc'].tolist())
+
+    print(f"min_train_acc : {min_train_acc}")
+    print(f"min_dev_acc : {min_dev_acc}")
+    print(f"min_test_acc: {min_test_acc}")
+   
+
+
+    #Calculating max accuracies across hyperparameters
+    max_train_acc=max(df['train_acc'].tolist())
+    max_dev_acc=max(df['dev_acc'].tolist())
+    max_test_acc=max(df['test_acc'].tolist())
+
+    print(f"max_train_acc : {max_train_acc}")
+    print(f"max_dev_acc : {max_dev_acc}")
+    print(f"max_test_acc : {max_test_acc}")
+
+    #Calculating mean accuracies across hyperparameters
+    mean_train_acc=df['train_acc'].mean()
+    mean_dev_acc=df['dev_acc'].mean()
+    mean_test_acc=df['test_acc'].tolist()
+
+    print(f"mean_train_acc : {mean_train_acc}")
+    print(f"mean_dev_acc : {mean_dev_acc}")
+    print(f"mean_test_acc : {mean_test_acc}")
+
+ #Calculating median accuracies across hyperparameters
+    median_train_acc=df['train_acc'].median()
+    median_dev_acc=df['dev_acc'].median()
+    median_test_acc=df['test_acc'].tolist()
+
+    print(f"median_train_acc : {median_train_acc}")
+    print(f"median_dev_acc : {median_dev_acc}")
+    print(f"median_test_acc : {median_test_acc}")
+
 
 
     #Assignment 3 Qn 1.2
