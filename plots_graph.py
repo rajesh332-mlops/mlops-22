@@ -6,19 +6,51 @@
 
 # Standard scientific Python imports
 import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from skimage.transform import resize
 
 # Import datasets, classifiers and performance metrics
+
 from sklearn import datasets, svm, metrics
 from sklearn.model_selection import train_test_split
 
+# 1. set the ranges of hyper parameters 
+gamma_list = [0.01, 0.005, 0.001, 0.0005, 0.0001]
+c_list = [0.1, 0.2, 0.5, 0.7, 1, 2, 5, 7, 10] 
 
-GAMMA = 0.001
+h_param_comb = [{'gamma':g, 'C':c} for g in gamma_list for c in c_list]
+
+#R
+h_param_comb_list = [(g,c) for g in gamma_list for c in c_list]
+#h_param_comb_accuracy = dict.fromkeys(h_param_comb_list,[0,0,0])    #[train_accuracy, dev_accuracy test_accuracy]
+h_param_comb_accuracy ={key:[0,0,0] for key in h_param_comb_list}
+
+#
+
+assert len(h_param_comb) == len(gamma_list)*len(c_list)
+
+
 train_frac = 0.8
 test_frac = 0.1
 dev_frac = 0.1
 
 #PART: load dataset -- data from csv, tsv, jsonl, pickle
 digits = datasets.load_digits()
+
+digits_images = digits.images
+print(f"The image size is {digits_images[0].size} and shape is {digits_images[0].shape} in the digits dataset.")
+
+#PART: data pre-processing -- to re scale the images
+shapes=[4, 16, 64]
+data=[] 
+
+for i in shapes:
+    temp=[]
+    for imag in digits_images:
+        temp.append(np.ravel(resize(imag, (i, i), anti_aliasing=False)))
+    data.append(np.array(temp))
+    temp.clear()
 
 #PART: sanity check visualization of the data
 _, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
@@ -30,50 +62,146 @@ for ax, image, label in zip(axes, digits.images, digits.target):
 
 #PART: data pre-processing -- to remove some noise, to normalize data, format the data to be consumed by mode
 # flatten the images
-n_samples = len(digits.images)
-data = digits.images.reshape((n_samples, -1))
+# n_samples = len(digits.images)
+# data = digits.images.reshape((n_samples, -1))
 
 
 #PART: define train/dev/test splits of experiment protocol
 # train to train model
 # dev to set hyperparameters of the model
 # test to evaluate the performance of the model
-dev_test_frac = 1-train_frac
-X_train, X_dev_test, y_train, y_dev_test = train_test_split(
-    data, digits.target, test_size=dev_test_frac, shuffle=True
-)
-X_test, X_dev, y_test, y_dev = train_test_split(
-    X_dev_test, y_dev_test, test_size=(dev_frac)/dev_test_frac, shuffle=True
-)
+shapes_count=0
+for d in data:
+    v_size = shapes[shapes_count]
+    dev_test_frac = 1-train_frac
+    X_train, X_dev_test, y_train, y_dev_test = train_test_split(
+        d, digits.target, test_size=dev_test_frac, shuffle=True
+    )
+    X_test, X_dev, y_test, y_dev = train_test_split(
+        X_dev_test, y_dev_test, test_size=(dev_frac)/dev_test_frac, shuffle=True
+    )
 
 
-#PART: Define the model
-# Create a classifier: a support vector classifier
-clf = svm.SVC()
+    best_acc = -1.0
+    best_model = None
+    best_h_params = None
 
-#PART: setting up hyperparameter
-hyper_params = {'gamma':GAMMA}
-clf.set_params(**hyper_params)
+    # 2. For every combination-of-hyper-parameter values
+    for cur_h_params in h_param_comb:
+        #R
+        key1 = tuple(cur_h_params.values())
+        #
+
+        #PART: Define the model
+        # Create a classifier: a support vector classifier
+        clf = svm.SVC()
+
+        #PART: setting up hyperparameter
+        hyper_params = cur_h_params
+        clf.set_params(**hyper_params)
 
 
-#PART: Train model
-# Learn the digits on the train subset
-clf.fit(X_train, y_train)
+        # print("key1",key1)
 
-#PART: Get test set predictions
-# Predict the value of the digit on the test subset
-predicted = clf.predict(X_test)
 
-#PART: Sanity check of predictions
-_, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
-for ax, image, prediction in zip(axes, X_test, predicted):
-    ax.set_axis_off()
-    image = image.reshape(8, 8)
-    ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
-    ax.set_title(f"Prediction: {prediction}")
+        #PART: Train model
+        # 2.a train the model 
+        # Learn the digits on the train subset
+        clf.fit(X_train, y_train)
+        # print(cur_h_params)
+        #PART: get dev set predictions
+        predicted_dev = clf.predict(X_dev)
 
-#PART: Compute evaluation metrics
-print(
-    f"Classification report for classifier {clf}:\n"
-    f"{metrics.classification_report(y_test, predicted)}\n"
-)
+        # 2.b compute the accuracy on the validation set
+        cur_acc = metrics.accuracy_score(y_pred=predicted_dev, y_true=y_dev)
+
+        #R
+        h_param_comb_accuracy[key1][1] =cur_acc
+        #
+
+
+
+        #R
+        #PART: get train set predictions
+        predicted_train = clf.predict(X_train)
+        ## compute the accuracy on the train set
+        curr_train_acc = metrics.accuracy_score(y_pred=predicted_train, y_true=y_train)
+        h_param_comb_accuracy[key1][0] =curr_train_acc
+        #
+
+
+
+
+        #R
+        #PART: get test set predictions
+        predicted_test = clf.predict(X_test)
+        ## compute the accuracy on the test set
+        curr_test_acc = metrics.accuracy_score(y_pred=predicted_test, y_true=y_test)
+        h_param_comb_accuracy[key1][2] =curr_test_acc
+        #
+
+
+        # 3. identify the combination-of-hyper-parameter for which validation set accuracy is the highest. 
+        if cur_acc >= best_acc:
+            best_acc = cur_acc
+            best_model = clf
+            best_h_params = cur_h_params
+            print("Found new best acc with :"+str(cur_h_params))
+            print("New best val accuracy:" + str(cur_acc))
+
+
+
+        
+    #PART: Get test set predictions
+    # Predict the value of the digit on the test subset
+    predicted = best_model.predict(X_test)
+
+    #PART: Sanity check of predictions
+    _, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
+    for ax, image, prediction in zip(axes, X_test, predicted):
+        ax.set_axis_off()
+        temp1,temp2 = shapes[shapes_count], shapes[shapes_count]
+        image = image.reshape(temp1,temp2)
+        ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
+        ax.set_title(f"Prediction: {prediction}")
+
+
+    print("")
+    print(f"Results for image size {v_size}x{v_size}")
+    # R 
+    # PART: Print accuracy table
+    df = pd.DataFrame.from_dict(h_param_comb_accuracy,orient = 'index',columns = ['Train_Accuracy', 'Dev_Accuracy', 'Test_Accuracy'])
+    df.index.rename('(Gamma, C)', inplace=True)
+    print("*"*100)
+    print(f"1) Printing the table of results for {v_size}x{v_size}:")
+    print(df)
+    print("*"*100)
+    print("")
+    #
+
+    # 5. printing the best hyperparameters
+    print("*"*100)
+    print("2. Best hyperparameters were:",best_h_params)
+
+    temp = tuple(best_h_params.values())
+    print("The Train Accuracy:",h_param_comb_accuracy[temp][0])
+    print("The Dev Accuracy:",h_param_comb_accuracy[temp][1])
+    print("The Test Accuracy:",h_param_comb_accuracy[temp][2])
+    print("*"*100)
+    #
+    shapes_count+=1
+
+    # # 4. report the test set accurancy with that best model.
+    # #PART: Compute evaluation metrics
+    # print("*"*100)
+    # print(
+    #     f"Classification report for classifier {best_model}:\n"
+    #     f"{metrics.classification_report(y_test, predicted)}\n"
+    # )
+    # print("*"*100)
+    # print("")
+    #
+
+
+
+
