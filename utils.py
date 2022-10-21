@@ -1,7 +1,12 @@
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn import svm,metrics
+from joblib import dump, load
 
-
+def get_all_h_param_comb(params):
+    h_param_comb = [{"gamma": g, "C": c} for g in params['gamma'] for c in params['C']]
+    return h_param_comb
+    
 def preprocess_digits(dataset):
     n_samples = len(dataset.images)
     data = dataset.images.reshape((n_samples, -1))
@@ -13,8 +18,6 @@ def preprocess_digits(dataset):
 # - normalize data: mean normalization: [x - mean(X)]
 #                 - min-max normalization
 # - smoothing the image: blur on the image
-
-
 
 
 def data_viz(dataset):
@@ -84,3 +87,24 @@ def h_param_tuning(h_param_comb, clf, x_train, y_train, x_dev, y_dev, metric):
             print("Found new best metric with :" + str(cur_h_params))
             print("New best val metric:" + str(cur_metric))
     return best_model, best_metric, best_h_params
+
+
+def train_save_model(x_train,y_train,x_dev,y_dev,model_path,h_param_comb):
+    #
+    
+
+    # PART: Define the model
+    # Create a classifier: a support vector classifier
+    clf = svm.SVC()
+    # define the evaluation metric
+    metric=metrics.accuracy_score
+
+
+    best_model, best_metric, best_h_params = h_param_tuning(h_param_comb, clf, x_train, y_train, x_dev, y_dev, metric)
+
+    # save the best_model
+    best_param_config = "_".join([h + "=" + str(best_h_params[h]) for h in best_h_params])
+    if model_path is None:
+        model_path = "svm_" + best_param_config + ".joblib" 
+    dump(best_model, model_path)
+    return model_path, clf, best_model, best_metric, best_h_params
