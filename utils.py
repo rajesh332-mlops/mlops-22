@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn import svm,metrics
-from joblib import dump, load
+from joblib import dump
+from sklearn import svm
+from sklearn.tree import DecisionTreeClassifier
+
 
 def get_all_h_param_comb(params):
     h_param_comb = [{"gamma": g, "C": c} for g in params['gamma'] for c in params['C']]
@@ -89,22 +91,27 @@ def h_param_tuning(h_param_comb, clf, x_train, y_train, x_dev, y_dev, metric):
     return best_model, best_metric, best_h_params
 
 
-def train_save_model(x_train,y_train,x_dev,y_dev,model_path,h_param_comb):
-    #
-    
-
-    # PART: Define the model
-    # Create a classifier: a support vector classifier
-    clf = svm.SVC()
-    # define the evaluation metric
-    metric=metrics.accuracy_score
-
-
-    best_model, best_metric, best_h_params = h_param_tuning(h_param_comb, clf, x_train, y_train, x_dev, y_dev, metric)
+def tune_and_save(clf, x_train, y_train, x_dev, y_dev, metric, h_param_comb, model_path):
+    best_model, best_metric, best_h_params = h_param_tuning(
+        h_param_comb, clf, x_train, y_train, x_dev, y_dev, metric
+    )
 
     # save the best_model
     best_param_config = "_".join([h + "=" + str(best_h_params[h]) for h in best_h_params])
-    if model_path is None:
-        model_path = "svm_" + best_param_config + ".joblib" 
+    
+    if type(clf) == svm.SVC:
+        model_type = 'svm'
+    if type(clf) == DecisionTreeClassifier:
+        model_type = 'dt'
+
+    best_model_name = model_type + "_" + best_param_config + ".joblib"
+    if model_path == None:
+        model_path = best_model_name
     dump(best_model, model_path)
-    return model_path, clf, best_model, best_metric, best_h_params
+
+    print("Best hyperparameters were:")
+    print(best_h_params)
+
+    print("Best Metric on Dev was:{}".format(best_metric))
+
+    return model_path
