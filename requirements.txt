@@ -1,4 +1,0 @@
-matplotlib==3.3.4
-scikit-learn==1.0 
-scikit-image==0.17.2
-pytest==7.1.3
