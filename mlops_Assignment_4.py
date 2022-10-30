@@ -27,7 +27,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 # SVC parameter: We will use gamma and c parameter for tunning
 
-gamma_list = [0.01, 0.005, 0.001, 0.0005, 0.0001]
+gamma_list = [0.01, 0.005, 0.006, 0.0008, 0.0001]
 c_list = [0.1, 0.2, 0.5, 0.7, 1, 2, 5, 7, 10]
 
 # Decision Tree classifier parameter: We will use max_depth,  min_samples_leaf, and criterion parameter for tunning
@@ -161,7 +161,7 @@ acc_svc.append(np.mean(acc_svc))
 acc_dt.append(np.mean(acc_dt))
 acc_svc.append(np.std(acc_svc))
 acc_dt.append(np.std(acc_dt))
-acc_df[''] = ['Run 1', 'Run 2', 'Run 3', 'Run 4', 'Run 5', "mean", "std"]
+acc_df[''] = ['Run1', 'Run2', 'Run3', 'Run4', 'Run5', "mean", "std"]
 acc_df["SVC"] = acc_svc
 acc_df["DT"] = acc_dt
 
