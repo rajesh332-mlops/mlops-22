@@ -161,14 +161,14 @@ acc_svc.append(np.mean(acc_svc))
 acc_dt.append(np.mean(acc_dt))
 acc_svc.append(np.std(acc_svc))
 acc_dt.append(np.std(acc_dt))
-acc_df[''] = ['Run1', 'Run2', 'Run3', 'Run4', 'Run5', "mean", "std"]
+acc_df[''] = ['1', '2', '3', '4', '5', "mean", "std"]
 acc_df["SVC"] = acc_svc
 acc_df["DT"] = acc_dt
 
 ##
 print("\nBest hyper-params for 5 different splits of Train/test/Val using SVM and Decision Tree classifier are:\n")
 print(best_h_params_svc, best_h_params_dt, sep='\n')
-print("\nAccuracy of Test set for 5 different splits of Train/test/Val using SVM and Decision Tree classifier are:\n")
+print("\nAccuracy after run the SVM & Decision_Tree of Test set for 5 different splits of Train/test/Val using SVM and Decision Tree classifier are:\n")
 print(acc_df)
 print("\n")
 
