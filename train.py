@@ -33,13 +33,13 @@ import argparse
 parser = argparse.ArgumentParser()
 
 # Adding Arguments
-parser.add_argument('-c','--clf_name',
+parser.add_argument('-clf','--clf_name',
                     type=str,
-                    help='classifier type svm for support vector machine and dt for decision tree')
+                    )
 
 parser.add_argument('-r','--random_state',
                     type=int,
-                    help='setting the random seed for dataset split')
+                    )
 
 args = parser.parse_args()
 
