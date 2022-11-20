@@ -18,4 +18,6 @@ COPY . /app
 # configure the container to run in an executed manner
 ENTRYPOINT [ "python3" ]
 
+EXPOSE 5000
+
 CMD ["api.py" ]
