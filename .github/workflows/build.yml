@@ -23,5 +23,5 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t app .
-        docker tag app rajesh332-mlops/mlops-22
-        docker push rajesh332-mlops/mlops-22
+        docker tag app m21aie208/mlops
+        docker push m21aie208/mlops
